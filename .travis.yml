@@ -5,7 +5,7 @@ python:
 
 before_install:
   - sudo apt-get update
-  - sudo apt-get install -qq python3-gi gir1.2-gtk-3.0 gir1.2-networkmanager-1.0 python3-pep8 python3-flake8 python3-coverage
+  - sudo apt-get install -qq python3-gi gir1.2-gtk-3.0 gir1.2-networkmanager-1.0
 
 virtualenv:
   system_site_packages: true
@@ -13,6 +13,7 @@ virtualenv:
 install:
   - pip install -e git+git://github.com/getting-things-gnome/liblarch.git#egg=liblarch
   - pip install -r requirements.txt
+  - pip install pep8 pyflakes coverage --use-mirrors
 
 script:
   - "pyflakes GTG"
