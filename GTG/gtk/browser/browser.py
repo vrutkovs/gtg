@@ -441,12 +441,12 @@ class TaskBrowser(GObject.GObject):
 
     def restore_state_from_conf(self):
 
-#        # Extract state from configuration dictionary
-#        if not "browser" in self.config:
-#            #necessary to have the minimum width of the tag pane
-#            # inferior to the "first run" width
-#            self.builder.get_object("hpaned1").set_position(250)
-#            return
+        # Extract state from configuration dictionary
+        #if not "browser" in self.config:
+        #    #necessary to have the minimum width of the tag pane
+        #    # inferior to the "first run" width
+        #    self.builder.get_object("hpaned1").set_position(250)
+        #    return
 
         width = self.config.get('width')
         height = self.config.get('height')
@@ -685,7 +685,7 @@ class TaskBrowser(GObject.GObject):
 
     def show_closed_pane(self):
         # The done/dismissed tasks treeview
-        if not 'closed' in self.vtree_panes:
+        if 'closed' not in self.vtree_panes:
             ctree = self.__create_closed_tree()
             self.vtree_panes['closed'] = \
                 self.tv_factory.closed_tasks_treeview(ctree)

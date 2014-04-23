@@ -489,7 +489,7 @@ class TaskEditor(object):
     def delete_task(self, widget):
         # this triggers the closing of the window in the view manager
         if self.task.is_new():
-#            self.req.delete_task(self.task.get_id())
+            #self.req.delete_task(self.task.get_id())
             self.vmanager.close_task(self.task.get_id())
         else:
             self.vmanager.ask_delete_tasks([self.task.get_id()])

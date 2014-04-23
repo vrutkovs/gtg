@@ -123,9 +123,9 @@ class GTGCalendar(GObject.GObject):
 
         #We grab the pointer in the calendar
         #Gdk.pointer_grab(
-            #self.__window.get_window(),
-            #True,
-            #Gdk.ModifierType.BUTTON1_MASK | Gdk.ModifierType.MOD2_MASK
+        #    self.__window.get_window(),
+        #    True,
+        #    Gdk.ModifierType.BUTTON1_MASK | Gdk.ModifierType.MOD2_MASK
         #)
         #FIXME THIS DOES NOT WORK!!!!!!!
         Gdk.pointer_grab(

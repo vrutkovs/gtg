@@ -61,8 +61,8 @@ class Manager(GObject.GObject):
 
         # Editors
         self.opened_task = {}   # This is the list of tasks that are already
-                                 # opened in an editor of course it's empty
-                                 # right now
+                                # opened in an editor of course it's empty
+                                # right now
 
         self.browser = None
         self.__start_browser_hidden = False
