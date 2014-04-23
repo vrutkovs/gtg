@@ -21,7 +21,6 @@
 
 #=== IMPORT ===================================================================
 # system imports
-import time
 import threading
 from webbrowser import open as openurl
 
