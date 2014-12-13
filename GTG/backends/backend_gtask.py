@@ -288,7 +288,6 @@ class Backend(PeriodicImportBackend):
             action, tid = self.sync_engine.analyze_remote_id(
                 gtask, self.datastore.has_task, self._google_task_exists(gtask), is_syncable)
 
-            Log.debug("processing google tasks (%s, %s)" % (action, is_syncable))
             if action == SyncEngine.ADD:
                 tid = str(uuid.uuid4())
                 task = self.datastore.task_factory(tid)
