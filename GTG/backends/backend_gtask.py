@@ -481,7 +481,7 @@ class Backend(PeriodicImportBackend):
         #start_time = task.get_start_date().to_py_date().strftime('%Y-%m-%dT%H:%M:%S.000Z' )
         due = task.get_due_date()
         if due != Date.no_date():
-            gtask['due'] = due.to_py_date().strftime('%Y-%m-%dT%H:%M:%S.000Z')
+            gtask['due'] = due.date().strftime('%Y-%m-%dT%H:%M:%S.000Z')
 
         result = self.service.tasks().insert(tasklist=self.get_tasklist(gtask), body=gtask).execute()
 
@@ -504,7 +504,7 @@ class Backend(PeriodicImportBackend):
         #start_time = task.get_start_date().to_py_date().strftime('%Y-%m-%dT%H:%M:%S.000Z' )
         due = task.get_due_date()
         if due != Date.no_date():
-            gtask['due'] = due.to_py_date().strftime('%Y-%m-%dT%H:%M:%S.000Z')
+            gtask['due'] = due.date().strftime('%Y-%m-%dT%H:%M:%S.000Z')
 
         gtask['title'] = title
         gtask['notes'] = content
