@@ -208,7 +208,8 @@ class Backend(PeriodicImportBackend):
             for gtask in gtasklist['items']:
                 if gtask['id'] != task:
                     return taskslist['id']
-        Log.info('No match found for ' + gtask['title'] + ' - ' + gtask['id'])
+
+        Log.warn('No match found for ' + gtask['title'] + ' - ' + gtask['id'])
 
     def do_periodic_import(self):
         # Wait until authentication
@@ -228,8 +229,8 @@ class Backend(PeriodicImportBackend):
 
             gtask_ids = [gtask['id'] for gtask in gtasklist['items']]
             stored_task_ids = self.sync_engine.get_all_remote()
-            #for gtask in set(stored_task_ids).difference(set(gtask_ids)):
-            #    self.on_gtask_deleted(gtask, None)
+            for gtask in set(stored_task_ids).difference(set(gtask_ids)):
+                self.on_gtask_deleted(gtask, None)
 
     @interruptible
     def on_gtask_deleted(self, gtask, something):
@@ -286,6 +287,7 @@ class Backend(PeriodicImportBackend):
             is_syncable = self._google_task_is_syncable(gtask)
             action, tid = self.sync_engine.analyze_remote_id(
                 gtask, self.datastore.has_task, self._google_task_exists(gtask), is_syncable)
+
             Log.debug("processing google tasks (%s, %s)" % (action, is_syncable))
             if action == SyncEngine.ADD:
                 tid = str(uuid.uuid4())
