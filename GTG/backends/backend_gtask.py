@@ -224,6 +224,8 @@ class Backend(PeriodicImportBackend):
                 return
 
             for gtask in gtasklist['items']:
+                if 'tasklist' not in gtask:
+                    continue
                 self._process_gtask(gtask['id'])
                 self.get_tasklist(gtask['id'])
 
