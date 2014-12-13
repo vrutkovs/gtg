@@ -199,7 +199,6 @@ class Backend(PeriodicImportBackend):
         tasklists = self.service.tasklists().list().execute()
 
         for taskslist in tasklists['items']:
-            #print 'checking '+str(taskslist['title'])
             #Loop through all the tasks of a tasklist
             gtasklist = self.service.tasks().list(tasklist=taskslist['id']).execute()
 
@@ -207,14 +206,9 @@ class Backend(PeriodicImportBackend):
                 return
 
             for gtask in gtasklist['items']:
-                #print '\nchecking - '+str(gtask['title'])
-                #print gtask['id']
-                #print '\n'
-                #print task
                 if gtask['id'] != task:
-                    print('the tassklist for ' + gtask['title'] + ' is - ' + str(taskslist['title']))
                     return taskslist['id']
-        print('No match found for ' + gtask['title'] + ' - ' + gtask['id'])
+        Log.info('No match found for ' + gtask['title'] + ' - ' + gtask['id'])
 
     def do_periodic_import(self):
         # Wait until authentication
@@ -263,7 +257,6 @@ class Backend(PeriodicImportBackend):
 
         @param gtasklist: a Google tasklist id
         '''
-        #print "\nremove_task\n"
         with self.datastore.get_backend_mutex():
             self.cancellation_point()
             try:
@@ -333,7 +326,6 @@ class Backend(PeriodicImportBackend):
         See GenericBackend for an explanation of this function.
 
         '''
-        #print "\nset_task\n"
         # Skip if not authenticated
         if not self.authenticated:
             return
@@ -415,7 +407,6 @@ class Backend(PeriodicImportBackend):
         @returns Boolean
         @param gtasklist: a Google tasklist id
         '''
-        #print "\n_google_task_exists\n"
         try:
             self.service.tasks().get(tasklist=self.get_tasklist(gtask), task=gtask).execute()
             return True
@@ -476,15 +467,8 @@ class Backend(PeriodicImportBackend):
         @param gtask: a Google Task
         @param task: a GTG Task
         '''
-        #print "\n_populate_gtask\n"
         title = task.get_title()
         content = task.get_excerpt(strip_subtasks=False)
-        print(dir(task))
-        print("\n")
-        print(dir(task.get_remote_ids()))
-        print(task.get_remote_ids().values())
-        print("\n")
-        #print task.get_remote_ids().values[0]
 
         gtask = {
             'title': title,
@@ -511,7 +495,6 @@ class Backend(PeriodicImportBackend):
         @param gtask: a Google Task
         @param task: a GTG Task
         '''
-        #print "\n_update_gtask\n"
         title = task.get_title()
         content = task.get_excerpt(strip_subtasks=False)
 
@@ -536,7 +519,6 @@ class Backend(PeriodicImportBackend):
         @param tid: a GTG task tid
         @param gtask: a Google task id
         '''
-        #print "\n _exec_lost_syncability\n"
         self.cancellation_point()
         meme = self.sync_engine.get_meme_from_remote_id(gtask)
         #First of all, the relationship is lost
