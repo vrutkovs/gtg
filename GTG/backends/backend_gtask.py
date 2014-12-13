@@ -49,6 +49,7 @@ from oauth2client.client import FlowExchangeError
 from oauth2client.client import OAuth2WebServerFlow
 from oauth2client.file import Storage
 
+
 class Backend(PeriodicImportBackend):
     # Credence for authorizing GTG as an app
     CLIENT_ID = '94851023623.apps.googleusercontent.com'
@@ -64,15 +65,15 @@ class Backend(PeriodicImportBackend):
         GenericBackend.BACKEND_DESCRIPTION:
             _("Synchronize your GTG tasks with Google Tasks \n\n"
               "Legal note: This product uses the Google Tasks API but is not "
-              "endorsed or certified by Google Tasks"),\
+              "endorsed or certified by Google Tasks"),
         }
 
-    _static_parameters = { \
-        "period": { \
-            GenericBackend.PARAM_TYPE: GenericBackend.TYPE_INT, \
+    _static_parameters = {
+        "period": {
+            GenericBackend.PARAM_TYPE: GenericBackend.TYPE_INT,
             GenericBackend.PARAM_DEFAULT_VALUE: 5, },
-        "is-first-run": { \
-            GenericBackend.PARAM_TYPE: GenericBackend.TYPE_BOOL, \
+        "is-first-run": {
+            GenericBackend.PARAM_TYPE: GenericBackend.TYPE_BOOL,
             GenericBackend.PARAM_DEFAULT_VALUE: True, },
         }
 
@@ -86,9 +87,9 @@ class Backend(PeriodicImportBackend):
         self.service = None
         self.authenticated = False
         #loading the list of already imported tasks
-        self.data_path = os.path.join('backends/gtask/', "tasks_dict-%s" %\
-                                     self.get_id())
-        self.sync_engine = self._load_pickled_file(self.data_path, \
+        self.data_path = os.path.join('backends/gtask/', "tasks_dict-%s" %
+                                      self.get_id())
+        self.sync_engine = self._load_pickled_file(self.data_path,
                                                    SyncEngine())
 
     def save_state(self):
@@ -103,7 +104,8 @@ class Backend(PeriodicImportBackend):
         Intialize backend: try to authenticate. If it fails, request an authorization.
         """
         super(Backend, self).initialize()
-        path = os.path.join(CoreConfig().get_data_dir(), 'backends/gtask', 'storage_file-%s' % self.get_id())
+        path = os.path.join(CoreConfig().get_data_dir(), 'backends/gtask',
+                            'storage_file-%s' % self.get_id())
         # Try to create leading directories that path
         path_dir = os.path.dirname(path)
         if not os.path.isdir(path_dir):
@@ -117,7 +119,7 @@ class Backend(PeriodicImportBackend):
         self.authenticated = False
 
         credentials = self.storage.get()
-        if credentials is None or credentials.invalid == True:
+        if credentials is None or credentials.invalid:
             self.request_authorization()
         else:
             self.apply_credentials(credentials)
@@ -129,7 +131,7 @@ class Backend(PeriodicImportBackend):
 
         # Build a service object for interacting with the API.
         self.service = build_service(serviceName='tasks', version='v1', http=http,
-                    developerKey='AIzaSyAmUlk8_iv-rYDEcJ2NyeC_KVPNkrsGcqU')
+                                     developerKey='AIzaSyAmUlk8_iv-rYDEcJ2NyeC_KVPNkrsGcqU')
 
         self.authenticated = True
 
@@ -144,9 +146,9 @@ class Backend(PeriodicImportBackend):
     def request_authorization(self):
         """ Make the first step of authorization and open URL for allowing the access """
         self.flow = OAuth2WebServerFlow(client_id=self.CLIENT_ID,
-            client_secret=self.CLIENT_SECRET,
-            scope='https://www.googleapis.com/auth/tasks',
-            user_agent='GTG')
+                                        client_secret=self.CLIENT_SECRET,
+                                        scope='https://www.googleapis.com/auth/tasks',
+                                        user_agent='GTG')
 
         oauth_callback = 'oob'
         url = self.flow.step1_get_authorize_url(oauth_callback)
@@ -169,75 +171,69 @@ class Backend(PeriodicImportBackend):
 
         if step_type == "get_ui_dialog_text":
             return _("Code request"), _("Paste the code Google has given you"
-                    "here")
+                                        "here")
         elif step_type == "set_text":
             try:
                 credentials = self._authorization_step2(code)
-            except FlowExchangeError, e:
+            except FlowExchangeError:
                 # Show an error to user and end
-                self.quit(disable = True)
-                BackendSignals().backend_failed(self.get_id(), 
-                            BackendSignals.ERRNO_AUTHENTICATION)
+                self.quit(disable=True)
+                BackendSignals().backend_failed(self.get_id(),
+                                                BackendSignals.ERRNO_AUTHENTICATION)
                 return
 
             self.apply_credentials(credentials)
             # Request periodic import, avoid waiting a long time
             self.start_get_tasks()
-            
+
     def get_tasklist(self, task):
         '''
         Returns the tasklist id of a given task
-        
+
         @param task: the id of the Google Task
         '''
         # Wait until authentication
         if not self.authenticated:
             return
         #Loop through all the tasklists
-        tasklists=self.service.tasklists().list().execute()
-        
+        tasklists = self.service.tasklists().list().execute()
+
         for taskslist in tasklists['items']:
             #print 'checking '+str(taskslist['title'])
             #Loop through all the tasks of a tasklist
             gtasklist = self.service.tasks().list(tasklist=taskslist['id']).execute()
-            
+
             for gtask in gtasklist['items']:
                 #print '\nchecking - '+str(gtask['title'])
                 #print gtask['id']
                 #print '\n'
                 #print task
-                if not cmp(gtask['id'], task):
-                    print 'the tassklist for '+gtask['title']+' is - '+ str(taskslist['title'])
-                    return taskslist['id']        
-        print 'No match found for '+gtask['title'] +' - '+gtask['id']
+                if gtask['id'] != task:
+                    print('the tassklist for ' + gtask['title'] + ' is - ' + str(taskslist['title']))
+                    return taskslist['id']
+        print('No match found for ' + gtask['title'] + ' - ' + gtask['id'])
 
     def do_periodic_import(self):
         # Wait until authentication
         if not self.authenticated:
             return
         #get all the tasklists
-        tasklists=self.service.tasklists().list().execute()
+        tasklists = self.service.tasklists().list().execute()
         for taskslist in tasklists['items']:
-            print "\n"
-            print taskslist['title']
-            print "==========================="
+            print("\n")
+            print(taskslist['title'])
+            print("===========================")
             gtasklist = self.service.tasks().list(tasklist=taskslist['id']).execute()
-            
-            
+
             for gtask in gtasklist['items']:
-                self._process_gtask(gtask['id'] )
-                print gtask['title']
+                self._process_gtask(gtask['id'])
+                print(gtask['title'])
                 self.get_tasklist(gtask['id'])
-            
+
             gtask_ids = [gtask['id'] for gtask in gtasklist['items']]
             stored_task_ids = self.sync_engine.get_all_remote()
             #for gtask in set(stored_task_ids).difference(set(gtask_ids)):
             #    self.on_gtask_deleted(gtask, None)
-    
-    
-        
-        
-         
 
     @interruptible
     def on_gtask_deleted(self, gtask, something):
@@ -245,7 +241,7 @@ class Backend(PeriodicImportBackend):
         Callback, executed when a Google Task is deleted.
         Deletes the related GTG task.
 
-        @param gtask: the id of the Google Task 
+        @param gtask: the id of the Google Task
         @param something: not used, here for signal callback compatibility
         '''
         with self.datastore.get_backend_mutex():
@@ -256,13 +252,13 @@ class Backend(PeriodicImportBackend):
                 return
             if self.datastore.has_task(tid):
                 self.datastore.request_task_deletion(tid)
-                self.break_relationship(remote_id = gtask)
+                self.break_relationship(remote_id=gtask)
 
     @interruptible
     def remove_task(self, tid):
         '''
         See GenericBackend for an explanation of this function.
-        
+
         @param gtasklist: a Google tasklist id
         '''
         #print "\nremove_task\n"
@@ -275,15 +271,15 @@ class Backend(PeriodicImportBackend):
             #the remote task might have been already deleted manually (or by
             #another app)
             try:
-                self.service.tasks().delete(tasklist=gtasklist, task=gtask).execute()
-            except Exception, e:
+                self.service.tasks().delete(tasklist=self.gtasklist, task=gtask).execute()
+            except Exception as e:
                 #FIXME:need to see if disconnected...
                 Log.error(e)
-            self.break_relationship(local_id = tid)
+            self.break_relationship(local_id=tid)
 
     def _process_gtask(self, gtask):
         '''
-        Given a Google Task id, finds out if it must be synced to a GTG note and, 
+        Given a Google Task id, finds out if it must be synced to a GTG note and,
         if so, it carries out the synchronization (by creating or updating a GTG
         task, or deleting itself if the related task has been deleted)
 
@@ -293,96 +289,92 @@ class Backend(PeriodicImportBackend):
         with self.datastore.get_backend_mutex():
             self.cancellation_point()
             is_syncable = self._google_task_is_syncable(gtask)
-            action, tid = self.sync_engine.analyze_remote_id(gtask, \
-                         self.datastore.has_task, \
-                         self._google_task_exists(gtask), is_syncable)
+            action, tid = self.sync_engine.analyze_remote_id(
+                gtask, self.datastore.has_task, self._google_task_exists(gtask), is_syncable)
             Log.debug("processing google tasks (%s, %s)" % (action, is_syncable))
             if action == SyncEngine.ADD:
                 tid = str(uuid.uuid4())
                 task = self.datastore.task_factory(tid)
                 self._populate_task(task, gtask)
-                self.record_relationship(local_id = tid,\
-                            remote_id = gtask, \
-                            meme = SyncMeme(task.get_modified(),
-                                            self.get_modified_for_task(gtask),
-                                            self.get_id()))
+                self.record_relationship(
+                    local_id=tid, remote_id=gtask,
+                    meme=SyncMeme(task.get_modified(),
+                                  self.get_modified_for_task(gtask),
+                                  self.get_id()))
                 self.datastore.push_task(task)
 
             elif action == SyncEngine.REMOVE:
                 self.service.tasks().delete(tasklist=self.get_tasklist(gtask), task=gtask).execute()
-                self.break_relationship(local_id = tid)
+                self.break_relationship(local_id=tid)
                 try:
-                    self.sync_engine.break_relationship(remote_id = gtask)
+                    self.sync_engine.break_relationship(remote_id=gtask)
                 except KeyError:
                     pass
-            
+
             elif action == SyncEngine.UPDATE:
                 task = self.datastore.get_task(tid)
                 meme = self.sync_engine.get_meme_from_remote_id(gtask)
-                newest = meme.which_is_newest(task.get_modified(),
-                                     self.get_modified_for_task(gtask))
+                newest = meme.which_is_newest(
+                    task.get_modified(), self.get_modified_for_task(gtask))
                 if newest == "remote":
                     self._populate_task(task, gtask)
                     meme.set_local_last_modified(task.get_modified())
-                    meme.set_remote_last_modified(\
-                                        self.get_modified_for_task(gtask))
+                    meme.set_remote_last_modified(self.get_modified_for_task(gtask))
                     self.save_state()
 
             elif action == SyncEngine.LOST_SYNCABILITY:
                 self._exec_lost_syncability(tid, gtask)
-        
 
     @interruptible
     def set_task(self, task):
         '''
         See GenericBackend for an explanation of this function.
-        
+
         '''
         #print "\nset_task\n"
         # Skip if not authenticated
         if not self.authenticated:
-            return 
+            return
 
         self.cancellation_point()
         is_syncable = self._gtg_task_is_syncable_per_attached_tags(task)
         tid = task.get_id()
         with self.datastore.get_backend_mutex():
-            action, gtask_id = self.sync_engine.analyze_local_id(tid, \
-                           self.datastore.has_task(tid), self._google_task_exists, \
-                                                        is_syncable)
+            action, gtask_id = self.sync_engine.analyze_local_id(
+                tid, self.datastore.has_task(tid),
+                self._google_task_exists, is_syncable)
             Log.debug("processing gtg (%s, %d)" % (action, is_syncable))
             if action == SyncEngine.ADD:
-                gtask = {'title': ' ',}
+                gtask = {'title': ' '}
                 gtask_id = self._populate_gtask(gtask, task)
-                self.record_relationship( \
-                    local_id = tid, remote_id = gtask_id, \
-                    meme = SyncMeme(task.get_modified(),\
-                                    self.get_modified_for_task(gtask_id),\
-                                    "GTG"))
+                self.record_relationship(
+                    local_id=tid, remote_id=gtask_id,
+                    meme=SyncMeme(task.get_modified(),
+                                  self.get_modified_for_task(gtask_id),
+                                  "GTG"))
 
             elif action == SyncEngine.REMOVE:
                 self.datastore.request_task_deletion(tid)
                 try:
-                    self.sync_engine.break_relationship(local_id = tid)
+                    self.sync_engine.break_relationship(local_id=tid)
                     self.save_state()
                 except KeyError:
                     pass
-                
+
             elif action == SyncEngine.UPDATE:
-                meme = self.sync_engine.get_meme_from_local_id(\
-                                                    task.get_id())
-                newest = meme.which_is_newest(task.get_modified(),
-                                     self.get_modified_for_task(gtask_id))
+                meme = self.sync_engine.get_meme_from_local_id(task.get_id())
+                newest = meme.which_is_newest(
+                    task.get_modified(), self.get_modified_for_task(gtask_id))
                 if newest == "local":
                     gtask = self.service.tasks().get(tasklist='@default', task=gtask_id).execute()
                     self._update_gtask(gtask, task)
                     meme.set_local_last_modified(task.get_modified())
-                    meme.set_remote_last_modified(\
-                                        self.get_modified_for_task(gtask_id))
+                    meme.set_remote_last_modified(self.get_modified_for_task(gtask_id))
                     self.save_state()
-            
+
             elif action == SyncEngine.LOST_SYNCABILITY:
-                self._exec_lost_syncability(tid, note)
+                pass
+                #self._exec_lost_syncability(tid, note)
 
 ###############################################################################
 ### Helper methods ############################################################
@@ -422,8 +414,8 @@ class Backend(PeriodicImportBackend):
         @param gtasklist: a Google tasklist id
         '''
         #print "\n_google_task_exists\n"
-        try:        
-            self.service.tasks().get(tasklist=get_tasklist(gtask), task=gtask).execute()
+        try:
+            self.service.tasks().get(tasklist=self.get_tasklist(gtask), task=gtask).execute()
             return True
         except:
             return False
@@ -436,7 +428,7 @@ class Backend(PeriodicImportBackend):
         @returns datetime.datetime
         @param gtasklist: a Google tasklist id
         '''
-        
+
         #try:
         gtask_instance = self.service.tasks().get(tasklist=self.get_tasklist(gtask), task=gtask).execute()
         #except:
@@ -453,8 +445,8 @@ class Backend(PeriodicImportBackend):
         @param gtasklist: a Google tasklist id
         '''
         gtask_instance = self.service.tasks().get(tasklist=self.get_tasklist(gtask), task=gtask).execute()
-        text = ' '#gtask_instance['notes']
-        if text == None :
+        text = ' '  # gtask_instance['notes']
+        if text is None:
             text = ' '
         #update the tags list
         #task.set_only_these_tags(extract_tags_from_text(text))
@@ -479,38 +471,37 @@ class Backend(PeriodicImportBackend):
         '''
         Copies the content of a task into a Google Task.
 
-        @param gtask: a Google Task 
+        @param gtask: a Google Task
         @param task: a GTG Task
         '''
         #print "\n_populate_gtask\n"
         title = task.get_title()
         content = task.get_excerpt(strip_subtasks=False)
-        print dir(task)
-        print "\n"
-        print dir(task.get_remote_ids())
-        print task.get_remote_ids().values()
-        print "\n"
+        print(dir(task))
+        print("\n")
+        print(dir(task.get_remote_ids()))
+        print(task.get_remote_ids().values())
+        print("\n")
         #print task.get_remote_ids().values[0]
-        
 
         gtask = {
-                'title': title,
-                'notes': content,
+            'title': title,
+            'notes': content,
         }
-     
+
         #start_time = task.get_start_date().to_py_date().strftime('%Y-%m-%dT%H:%M:%S.000Z' )
         due = task.get_due_date()
         if due != Date.no_date():
-            gtask['due'] = due.to_py_date().strftime('%Y-%m-%dT%H:%M:%S.000Z' )
-    
-        result = self.service.tasks().insert(tasklist = self.get_tasklist(gtask), body = gtask).execute()
+            gtask['due'] = due.to_py_date().strftime('%Y-%m-%dT%H:%M:%S.000Z')
+
+        result = self.service.tasks().insert(tasklist=self.get_tasklist(gtask), body=gtask).execute()
 
         if task.get_status() == Task.STA_ACTIVE:
             gtask['status'] = "needsAction"
         else:
             gtask['status'] = "completed"
         return result['id']
-    
+
     def _update_gtask(self, gtask, task):
         '''
         Updates the content of a Google task if some change is made in the GTG Task.
@@ -521,16 +512,18 @@ class Backend(PeriodicImportBackend):
         #print "\n_update_gtask\n"
         title = task.get_title()
         content = task.get_excerpt(strip_subtasks=False)
-     
+
         #start_time = task.get_start_date().to_py_date().strftime('%Y-%m-%dT%H:%M:%S.000Z' )
         due = task.get_due_date()
         if due != Date.no_date():
-            gtask['due'] = due.to_py_date().strftime('%Y-%m-%dT%H:%M:%S.000Z' )
-    
+            gtask['due'] = due.to_py_date().strftime('%Y-%m-%dT%H:%M:%S.000Z')
+
         gtask['title'] = title
         gtask['notes'] = content
-        result = self.service.tasks().update(tasklist = self.get_tasklist(gtask['id']), task = gtask['id'], body = gtask).execute()
-  
+        self.service.tasks().update(
+            tasklist=self.get_tasklist(gtask['id']), task=gtask['id'], body=gtask
+        ).execute()
+
     def _exec_lost_syncability(self, tid, gtask):
         '''
         Executed when a relationship between tasks loses its syncability
@@ -545,10 +538,9 @@ class Backend(PeriodicImportBackend):
         self.cancellation_point()
         meme = self.sync_engine.get_meme_from_remote_id(gtask)
         #First of all, the relationship is lost
-        self.sync_engine.break_relationship(remote_id = gtask)
+        self.sync_engine.break_relationship(remote_id=gtask)
         if meme.get_origin() == "GTG":
             self.service.tasks().delete(tasklist=self.get_tasklist(gtask), task=gtask).execute()
-            
         else:
             self.datastore.request_task_deletion(tid)
 
@@ -571,7 +563,7 @@ class Backend(PeriodicImportBackend):
         Proxy method for SyncEngine.break_relationship, which also saves the
         state of the synchronization.
         '''
-        
+
         self.sync_engine.record_relationship(*args, **kwargs)
         #we try to save the state at each change in the sync_engine:
         #it's slower, but it should avoid widespread task
