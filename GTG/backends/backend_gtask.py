@@ -203,6 +203,9 @@ class Backend(PeriodicImportBackend):
             #Loop through all the tasks of a tasklist
             gtasklist = self.service.tasks().list(tasklist=taskslist['id']).execute()
 
+            if 'items' not in gtasklist.keys():
+                return
+
             for gtask in gtasklist['items']:
                 #print '\nchecking - '+str(gtask['title'])
                 #print gtask['id']
@@ -220,14 +223,13 @@ class Backend(PeriodicImportBackend):
         #get all the tasklists
         tasklists = self.service.tasklists().list().execute()
         for taskslist in tasklists['items']:
-            print("\n")
-            print(taskslist['title'])
-            print("===========================")
             gtasklist = self.service.tasks().list(tasklist=taskslist['id']).execute()
+
+            if 'items' not in gtasklist.keys():
+                return
 
             for gtask in gtasklist['items']:
                 self._process_gtask(gtask['id'])
-                print(gtask['title'])
                 self.get_tasklist(gtask['id'])
 
             gtask_ids = [gtask['id'] for gtask in gtasklist['items']]
